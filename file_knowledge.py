@@ -10,6 +10,7 @@ from PyPDF2 import PdfReader
 from audio_utils import convert_audio_to_text
 
 UploadedFile = TypeVar('UploadedFile', bound=Any)
+SUPPORTED_FILE_TYPES = ['pdf', 'csv', 'txt', 'html', 'm4a', 'eml', 'msg', 'mbox']
 
 
 @dataclass
@@ -59,7 +60,8 @@ class FileKnowledge:
             return self.extract_text_generic()
         
         else:
-            raise ValueError(f'Unsupported filetype: {self.filetype}')
+            if not self.filetype in SUPPORTED_FILE_TYPES:
+                raise ValueError(f'Unsupported filetype: {self.filetype}')
 
     def extract_text_from_pdf(self):
         # Add your code here to extract text from a PDF file
