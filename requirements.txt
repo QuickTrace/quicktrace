@@ -1,0 +1,9 @@
+streamlit==1.22.0
+pypdf2==3.0.1
+python-dotenv==1.0.0
+langchain==0.0.170
+openai==0.27.6
+tiktoken==0.4.0
+faiss_cpu==1.7.4
+pydub==0.25.1
+ffmpeg-python==0.2.0
