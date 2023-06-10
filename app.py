@@ -7,6 +7,7 @@ from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import FAISS
+from pathlib import Path
 
 from audio_utils import convert_audio_to_text
 from file_knowledge import FileKnowledge
@@ -66,11 +67,11 @@ def initialize_sidebar(session):
     with st.sidebar:
         show_all_konwledge = st.button("Show all knowledge", key="show_all_konwledge")
         with st.expander("Upload files"):
-            process_files("pdf", get_splitter(), session)
-            process_files("m4a", get_splitter(), session)
+            process_files(get_splitter(), session)
+                
 
         st.header("Journalist toolbox")
-        st.write("Upload your PDF file or audio file")
+        st.write("Upload your PDF, audio, text, or csv files")
         st.write("Then ask a question and get an answer")
         st.write("You can also download the text of the uploaded files")
         st.divider()
@@ -86,9 +87,10 @@ def get_splitter():
         length_function=len,
     )
 
-def process_files(file_type, splitter, session):
-    files = st.file_uploader(f"Upload your {file_type} file", type=[file_type], accept_multiple_files=True)
+def process_files(splitter, session):
+    files = st.file_uploader(f"Upload your files!", accept_multiple_files=True)
     for file in files:
+        file_type = Path(file.name).suffix.split('.')[1]
         if file.name not in st.session_state["knowledge"].keys():
             file_knowledge = FileKnowledge(name=file.name, file=file, filetype=file_type, splitter=splitter)
             session[file.name] = file_knowledge
