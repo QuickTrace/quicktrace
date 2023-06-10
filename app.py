@@ -11,6 +11,8 @@ from langchain.vectorstores import FAISS
 from audio_utils import convert_audio_to_text
 from file_knowledge import FileKnowledge
 
+from crawler import crawl_page
+
 def main():
     load_dotenv()
     st.set_page_config(page_title="Journalist's Toolbox", page_icon=":smiley:")
@@ -68,6 +70,7 @@ def initialize_sidebar(session):
         with st.expander("Upload files"):
             process_files("pdf", get_splitter(), session)
             process_files("m4a", get_splitter(), session)
+            crawl_site(get_splitter(),session)
 
         st.header("Journalist toolbox")
         st.write("Upload your PDF file or audio file")
@@ -94,6 +97,37 @@ def process_files(file_type, splitter, session):
             session[file.name] = file_knowledge
 
             add_document_to_vector_store(file_knowledge)
+
+def crawl_site(splitter,session):
+    """
+    user enters a url
+    crawl_page gets files linked from that page
+    and returns them to st session
+    """
+    # user input
+    url = st.text_input("scrape a url :articulated_lorry:")
+    # try to scrape
+    page_data = crawl_page(url) 
+    # check if we have data
+    if page_data:
+        # we may have multiple results
+        for datum in page_data:
+            # buffer file
+            bufferwb = open('/tmp/' + datum['name'],'wb')
+            bufferwb.write(datum['content'])
+            bufferwb.close()
+            buffer = open('/tmp/' + datum['name'],'rb')
+            # get file knowledge
+            try:
+                file_knowledge = FileKnowledge(name=datum['name'],file=buffer,filetype=datum['ext'],splitter=splitter)
+                # add to session info
+                session[datum['name']] = file_knowledge
+                # add to vector store
+                add_document_to_vector_store(file_knowledge)
+
+            except Exception as e:
+                print(e)
+                import ipdb; ipdb.set_trace()
 
 def get_vector_store():
     if not hasattr(st.session_state, "vector_store"):
